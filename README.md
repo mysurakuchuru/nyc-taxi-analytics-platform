@@ -90,3 +90,12 @@ docs/images/             Tableau dashboard screenshots
 
 Raw trip data and credentials are intentionally excluded from version control. The project uses environment variables rather than committed database passwords.
 
+## Future evolution
+
+- Orchestrate ingestion and dbt builds with Airflow or Dagster
+- Add CI checks, freshness alerts, lineage, and pipeline observability
+- Move curated models toward a cloud warehouse or lakehouse architecture
+- Train and monitor demand-forecasting models by zone and hour
+- Expose governed metrics to an AI analytics assistant with tested semantic definitions
+
+These items are a roadmap; the repository's current delivered scope is the batch pipeline, warehouse, dbt layer, quality tests, analytics views, and Tableau dashboard.
