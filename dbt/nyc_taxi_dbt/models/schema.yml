@@ -1,5 +1,62 @@
 version: 2
 
+sources:
+  - name: staging
+    schema: staging
+    tables:
+      - name: yellow_taxi_trips_clean
+        description: Trips that passed the SQL staging quality rules.
+  - name: warehouse
+    schema: warehouse
+    tables:
+      - name: dim_payment_type
+      - name: dim_time
+      - name: dim_zone
+      - name: fact_taxi_trip_final
+
 models:
   - name: stg_taxi_trips
-    description: Cleaned taxi trip records from staging layer
+    description: Curated trip fields exposed as a dbt staging model.
+    columns:
+      - name: tpep_pickup_datetime
+        tests: [not_null]
+      - name: tpep_dropoff_datetime
+        tests: [not_null]
+      - name: pu_location_id
+        tests: [not_null]
+      - name: total_amount
+        tests: [not_null]
+
+  - name: fact_taxi_trip
+    description: Trip-grain fact model used by analytics and BI consumers.
+    columns:
+      - name: trip_id
+        tests: [not_null, unique]
+      - name: pu_location_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_zone')
+              field: location_id
+      - name: payment_type
+        tests:
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6]
+
+  - name: dim_zone
+    description: NYC TLC taxi zone lookup.
+    columns:
+      - name: location_id
+        tests: [not_null, unique]
+
+  - name: dim_time
+    description: Hour-of-day lookup with business-friendly time periods.
+    columns:
+      - name: pickup_hour
+        tests: [not_null, unique]
+
+  - name: dim_payment_type
+    description: TLC payment-type lookup.
+    columns:
+      - name: payment_type
+        tests: [not_null, unique]

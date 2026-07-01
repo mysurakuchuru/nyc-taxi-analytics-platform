@@ -3,4 +3,4 @@ SELECT
     borough,
     zone,
     service_zone
-FROM warehouse.dim_zone
+FROM {{ source('warehouse', 'dim_zone') }}

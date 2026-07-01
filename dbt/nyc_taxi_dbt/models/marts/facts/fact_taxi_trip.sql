@@ -14,4 +14,4 @@ SELECT
     total_amount,
     source_file,
     loaded_at
-FROM warehouse.fact_taxi_trip_final
+FROM {{ source('warehouse', 'fact_taxi_trip_final') }}

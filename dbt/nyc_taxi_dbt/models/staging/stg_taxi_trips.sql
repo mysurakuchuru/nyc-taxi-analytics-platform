@@ -11,4 +11,4 @@ SELECT
     pu_location_id,
     do_location_id,
     source_file
-FROM staging.yellow_taxi_trips_clean
+FROM {{ source('staging', 'yellow_taxi_trips_clean') }}

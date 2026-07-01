@@ -1,66 +1,92 @@
 # NYC Taxi Analytics Platform
 
-## Project Overview
+An end-to-end analytics engineering project that turns 14.9M NYC Yellow Taxi trips into a tested PostgreSQL warehouse and a Tableau dashboard.
 
-Built an end-to-end Analytics Engineering platform using NYC Taxi trip data (14.9M+ records).
+![NYC Taxi revenue dashboard](docs/images/Screenshot%202026-06-11%20at%2012.46.16%E2%80%AFPM.png)
 
-### Tech Stack
+## What this project demonstrates
 
-* Python
-* Pandas
-* PostgreSQL
-* SQL
-* Tableau
-* Git/GitHub
+- Batch ingestion from Parquet with Python and Pandas
+- Layered data modeling across raw, staging, warehouse, and analytics schemas
+- Reusable dbt models with source definitions, documentation, and data-quality tests
+- PostgreSQL indexing and analytics views for BI workloads
+- Tableau reporting for revenue, demand, zones, payment behavior, and tips
 
-### Architecture
+## Architecture
 
-Parquet Files
-→ Python ETL
-→ Raw Layer
-→ Staging Layer
-→ Warehouse Layer
-→ Analytics Views
-→ Tableau Dashboard
+```text
+NYC TLC Parquet files
+        |
+        v
+Python batch loader
+        |
+        v
+PostgreSQL: raw -> staging -> warehouse -> analytics
+                         |
+                         v
+                  dbt models + tests
+                         |
+                         v
+                 Tableau dashboard
+```
 
-### Data Volume
+## Results
 
-* January 2026: 3.7M records
-* February 2026: 3.4M records
-* March 2026: 4.0M records
-* April 2026: 3.8M records
+The source files contain approximately 14.9M trips from January through April 2026. After quality rules remove invalid distances, negative fares, and impossible trip timestamps, the curated layer contains 14.17M trips.
 
-Total: 14.9M records
+| Metric | Result |
+| --- | ---: |
+| Curated trips | 14,170,143 |
+| Total revenue | $426.8M |
+| Average fare | $30.12 |
+| Average tip | $2.83 |
 
-### Warehouse Design
+The dashboard highlights Manhattan as the largest revenue market and JFK Airport as the highest-revenue pickup zone in the analyzed period.
 
-Fact Tables:
+## Repository layout
 
-* fact_taxi_trip_final
+```text
+python/                  Batch ingestion
+sql/                     Schema, warehouse, indexes, and BI views
+dbt/nyc_taxi_dbt/        dbt models, tests, and documentation
+docs/images/             Tableau dashboard screenshots
+```
 
-Dimension Tables:
+## Run locally
 
-* dim_zone
-* dim_date
-* dim_time
-* dim_payment_type
-* dim_rate_code
+1. Create a PostgreSQL database named `nyc_taxi_analytics`.
+2. Copy `.env.example` to `.env` and set your local credentials.
+3. Install the Python dependencies:
 
-### Analytics Views
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
-* kpi_summary
-* revenue_by_borough
-* top_pickup_zones
-* peak_pickup_hours
-* payment_type_usage
-* tip_percentage_by_borough
+4. Download Yellow Taxi Parquet files from the [NYC Taxi & Limousine Commission](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page) into `data/raw/`.
+5. Run `sql/01_create_raw_tables.sql`, then load the files:
 
-### Dashboard Features
+   ```bash
+   python python/load_raw_data.py
+   ```
 
-* Revenue Analysis
-* Trip Volume Analysis
-* Peak Hour Trends
-* Pickup Zone Performance
-* Payment Type Distribution
-* Tip Percentage Analysis
+6. Run the remaining numbered SQL scripts in order.
+7. Copy `dbt/nyc_taxi_dbt/profiles.yml.example` to `~/.dbt/profiles.yml`, then validate the models:
+
+   ```bash
+   cd dbt/nyc_taxi_dbt
+   dbt build
+   ```
+
+## Data-quality rules
+
+- Trip distance must be greater than zero.
+- Fare and total amount must be non-negative.
+- Drop-off time must be later than pickup time.
+- dbt verifies primary fields, accepted payment types, and dimension relationships.
+
+## Notes
+
+Raw trip data and credentials are intentionally excluded from version control. The project uses environment variables rather than committed database passwords.
 
